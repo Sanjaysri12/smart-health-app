@@ -5,6 +5,10 @@ import joblib, os, sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 import pyttsx3
 import speech_recognition as sr
+import os
+
+if not os.path.exists("model.pkl"):
+    train_model()
 
 from openai import OpenAI
 client = OpenAI(api_key="YOUR_API_KEY")
