@@ -3,12 +3,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 import joblib, os, sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
-<<<<<<< HEAD
-import os
-
-=======
 from flask_cors import CORS
->>>>>>> 11811b6 (fixed render deployment issues)
 from openai import OpenAI
 
 # ---------- APP INIT ----------
@@ -50,17 +45,7 @@ init_db()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 model_path = os.path.join(BASE_DIR, 'model.pkl')
 
-def train_model():
-    if not os.path.exists(model_path):
-        data = pd.read_csv(os.path.join(BASE_DIR, 'calories.csv'))
-        X = data[['Age','Height','Weight','Heart_Rate','Body_Temp','Duration']]
-        y = data['Calories']
-
-        model = RandomForestRegressor()
-        model.fit(X, y)
-        joblib.dump(model, model_path)
-
-train_model()
+# ⚠ Only load model (DO NOT train in Render)
 model = joblib.load(model_path)
 
 # ---------- ROUTES ----------
@@ -172,7 +157,7 @@ def dashboard():
     return render_template('dashboard.html', result=result, inputs=inputs,
                            suggestion=suggestion, bmi=bmi, fitness=fitness, history=history)
 
-# ---------- API (IMPORTANT FOR MOBILE) ----------
+# ---------- API FOR MOBILE ----------
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.get_json()
@@ -199,7 +184,7 @@ def chat():
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role":"system","content":"You are a fitness trainer and diet expert."},
+            {"role":"system","content":"You are a fitness trainer."},
             {"role":"user","content":msg}
         ]
     )
@@ -212,10 +197,7 @@ def logout():
     session.pop('user',None)
     return redirect('/login')
 
-<<<<<<< HEAD
+# ---------- RUN ----------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-=======
-# ❌ REMOVE app.run()
->>>>>>> 11811b6 (fixed render deployment issues)
