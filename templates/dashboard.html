@@ -10,51 +10,81 @@
 <style>
 
 body {
-    background: url('/static/background.jpg') no-repeat center center/cover;
+    background: url('/static/background.jpeg') no-repeat center center/cover;
     color: white;
 }
 
 /* NAVBAR */
 .navbar {
-    background: rgba(0,0,0,0.85);
+    background: rgba(0,0,0,0.95);
     backdrop-filter: blur(10px);
 }
 .navbar a {
     color: white !important;
     margin-right: 15px;
     font-weight: bold;
+    transition: 0.3s;
+}
+.navbar a:hover {
+    color: #ccc !important;
 }
 
 /* PLACEHOLDER FIX */
 ::placeholder {
-    color: white !important;
+    color: #ccc !important;
 }
 
 /* CARD */
 .box {
-    background: rgba(0,0,0,0.75);
+    background: rgba(0,0,0,0.85);
     padding: 20px;
     border-radius: 15px;
-    box-shadow: 0 0 20px #00f2ff;
+    box-shadow: 0 0 15px #ffffff33;
 }
 
 /* INPUT */
 .input-box {
     background: transparent;
-    border: 1px solid #00f2ff;
+    border: 1px solid white;
     color: white;
+    transition: 0.3s;
+}
+.input-box:focus {
+    border-color: #ccc;
+    box-shadow: 0 0 8px #ffffff55;
 }
 
 /* BUTTON */
 .btn-glow {
-    background: linear-gradient(45deg,#00f2ff,#ff00ff);
-    border: none;
+    background: black;
+    border: 1px solid white;
     color: white;
+    transition: all 0.3s ease;
+}
+
+/* HOVER EFFECT */
+.btn-glow:hover {
+    background: white;
+    color: black;
+    transform: scale(1.05);
+    box-shadow: 0 0 10px white;
+}
+
+/* OTHER BUTTONS */
+.btn-warning, .btn-info, .btn-danger {
+    transition: all 0.3s ease;
+}
+
+.btn-warning:hover,
+.btn-info:hover,
+.btn-danger:hover {
+    transform: scale(1.05);
+    filter: brightness(1.2);
 }
 
 /* RESULT */
 .result h1 {
-    color: #00f2ff;
+    color: white;
     font-size: 40px;
 }
 
@@ -89,12 +119,17 @@ body {
 <h4 class="text-center mb-3">🔥 Calorie Prediction</h4>
 
 <form method="post">
-
+<h4>Age</h4>
 <input id="age" name="age" class="form-control input-box my-2" placeholder="Age (years)">
+<h4>Height</h4>
 <input id="height" name="height" class="form-control input-box my-2" placeholder="Height (cm)">
+<h4>Weight</h4>
 <input id="weight" name="weight" class="form-control input-box my-2" placeholder="Weight (kg)">
+<h4>Heart rate</h4>
 <input id="heart_rate" name="heart_rate" class="form-control input-box my-2" placeholder="Heart Rate (bpm)">
+<h4>Body temprature</h4>
 <input id="body_temp" name="body_temp" class="form-control input-box my-2" placeholder="Body Temp (°C)">
+<h4>Duration</h4>
 <input id="duration" name="duration" class="form-control input-box my-2" placeholder="Workout Duration (min)">
 
 <button class="btn btn-glow w-100 mt-2">⚡ Predict</button>

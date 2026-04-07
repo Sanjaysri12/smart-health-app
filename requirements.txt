@@ -1,10 +1,20 @@
-flask
+# flask
+# pandas
+# scikit-learn
+# joblib
+# werkzeug
+# pyttsx3
+# SpeechRecognition
+# pyaudio
+# gunicorn
+# openai
+
+
+Flask
+gunicorn
+numpy
 pandas
 scikit-learn
 joblib
-werkzeug
-#pyttsx3
-#SpeechRecognition
-#pyaudio
-gunicorn
+flask-cors
 openai

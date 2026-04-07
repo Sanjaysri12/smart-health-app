@@ -1,15 +1,23 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, session, jsonify
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 import joblib, os, sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
+<<<<<<< HEAD
 import os
 
+=======
+from flask_cors import CORS
+>>>>>>> 11811b6 (fixed render deployment issues)
 from openai import OpenAI
-client = OpenAI(api_key="YOUR_API_KEY")
 
+# ---------- APP INIT ----------
 app = Flask(__name__)
 app.secret_key = 'secret123'
+CORS(app)
+
+# ---------- OPENAI ----------
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 # ---------- DATABASE ----------
 def init_db():
@@ -39,34 +47,21 @@ def init_db():
 init_db()
 
 # ---------- ML MODEL ----------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(BASE_DIR, 'model.pkl')
+
 def train_model():
-    if not os.path.exists('model.pkl'):
-        data = pd.read_csv('calories.csv')
+    if not os.path.exists(model_path):
+        data = pd.read_csv(os.path.join(BASE_DIR, 'calories.csv'))
         X = data[['Age','Height','Weight','Heart_Rate','Body_Temp','Duration']]
         y = data['Calories']
 
         model = RandomForestRegressor()
         model.fit(X, y)
-        joblib.dump(model, 'model.pkl')
+        joblib.dump(model, model_path)
 
 train_model()
-model = joblib.load('model.pkl')
-
-# ---------- TTS ----------
-def speak(text):
-    engine = pyttsx3.init()
-    engine.say(text)
-    engine.runAndWait()
-
-# ---------- VOICE INPUT ----------
-def get_voice():
-    r = sr.Recognizer()
-    with sr.Microphone() as source:
-        audio = r.listen(source)
-    try:
-        return r.recognize_google(audio)
-    except:
-        return "Error"
+model = joblib.load(model_path)
 
 # ---------- ROUTES ----------
 @app.route('/')
@@ -87,11 +82,15 @@ def assistant():
 
 @app.route('/history')
 def history_page():
+    if 'user' not in session:
+        return redirect('/login')
+
     conn = sqlite3.connect('users.db')
     cur = conn.cursor()
     cur.execute("SELECT * FROM history WHERE username=?", (session['user'],))
     data = cur.fetchall()
     conn.close()
+
     return render_template('history.html', history=data)
 
 @app.route('/login', methods=['GET','POST'])
@@ -110,7 +109,7 @@ def login():
             session['user'] = u
             return redirect('/dashboard')
 
-        return render_template('login.html', error="Invalid")
+        return render_template('login.html', error="Invalid credentials")
 
     return render_template('login.html')
 
@@ -148,25 +147,21 @@ def dashboard():
         inputs = [float(request.form[x]) for x in ['age','height','weight','heart_rate','body_temp','duration']]
         result = round(model.predict([inputs])[0],2)
 
-        # BMI
         bmi = inputs[2]/((inputs[1]/100)**2)
         if bmi<18.5: fitness="Underweight"
         elif bmi<25: fitness="Normal"
         elif bmi<30: fitness="Overweight"
         else: fitness="Obese"
 
-        # Suggestion
         suggestion = "Great job!" if result>300 else "Increase activity"
 
-        # Save history
         conn = sqlite3.connect('users.db', timeout=10)
         cur=conn.cursor()
-        cur.execute("""INSERT INTO history (username,age,height,weight,heart_rate,body_temp,duration,calories)
+        cur.execute("""INSERT INTO history 
+        (username,age,height,weight,heart_rate,body_temp,duration,calories)
         VALUES (?,?,?,?,?,?,?,?)""",(session['user'],*inputs,result))
         conn.commit()
         conn.close()
-
-        speak(f"You burned {result} calories")
 
     conn = sqlite3.connect('users.db', timeout=10)
     cur=conn.cursor()
@@ -177,10 +172,29 @@ def dashboard():
     return render_template('dashboard.html', result=result, inputs=inputs,
                            suggestion=suggestion, bmi=bmi, fitness=fitness, history=history)
 
+# ---------- API (IMPORTANT FOR MOBILE) ----------
+@app.route('/predict', methods=['POST'])
+def predict():
+    data = request.get_json()
 
+    inputs = [
+        data['age'],
+        data['height'],
+        data['weight'],
+        data['heart_rate'],
+        data['body_temp'],
+        data['duration']
+    ]
+
+    result = round(model.predict([inputs])[0],2)
+
+    return jsonify({"calories": result})
+
+# ---------- CHAT ----------
 @app.route('/chat', methods=['POST'])
 def chat():
-    msg = request.form['msg']
+    data = request.get_json()
+    msg = data.get('msg')
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",
@@ -190,17 +204,18 @@ def chat():
         ]
     )
 
-    return response.choices[0].message.content
+    return jsonify({"reply": response.choices[0].message.content})
 
-@app.route('/voice')
-def voice():
-    return get_voice()
-
+# ---------- LOGOUT ----------
 @app.route('/logout')
 def logout():
     session.pop('user',None)
     return redirect('/login')
 
+<<<<<<< HEAD
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+=======
+# ❌ REMOVE app.run()
+>>>>>>> 11811b6 (fixed render deployment issues)
