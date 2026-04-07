@@ -3,12 +3,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 import joblib, os, sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
-import pyttsx3
-import speech_recognition as sr
 import os
-
-if not os.path.exists("model.pkl"):
-    train_model()
 
 from openai import OpenAI
 client = OpenAI(api_key="YOUR_API_KEY")
@@ -207,4 +202,5 @@ def logout():
     return redirect('/login')
 
 if __name__ == "__main__":
-    app.run()
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
